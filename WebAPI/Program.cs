@@ -46,7 +46,8 @@ namespace WebAPI
             });
 
             app.MapPost("/api/user/add", (Person user) => {
-
+                // устанавливаем id для нового пользователя
+                user.Id = Guid.NewGuid().ToString();
                 // добавляем пользователя в список
                 users.Add(user);
                 return user;
