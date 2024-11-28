@@ -8,12 +8,8 @@ namespace WebAPI
     {
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
-      //      string connection = "Server=(localdb)\\mssqllocaldb;Database=applicationdb;Trusted_Connection=True;";
-            // получаем строку подключения из файла конфигурации
-            string connection = builder.Configuration.GetConnectionString("DefaultConnection");
-
-            // добавляем контекст ApplicationContext в качестве сервиса в приложение
+            var builder = WebApplication.CreateBuilder();
+            string connection = "Server=(localdb)\\mssqllocaldb;Database=applicationdb;Trusted_Connection=True;";
             builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(connection));
 
             var app = builder.Build();
@@ -21,9 +17,9 @@ namespace WebAPI
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
-            app.MapGet("/api/user/seleclist", () => async (ApplicationContext db) => await db.Person.ToListAsync());
+            app.MapGet("/api/users", async (ApplicationContext db) => await db.Person.ToListAsync());
 
-            app.MapGet("/api/user/select/{id:int}", async (int id, ApplicationContext db) =>
+            app.MapGet("/api/users/{id:int}", async (int id, ApplicationContext db) =>
             {
                 // получаем пользователя по id
                 Person? person = await db.Person.FirstOrDefaultAsync(u => u.Id == id);
@@ -35,7 +31,7 @@ namespace WebAPI
                 return Results.Json(person);
             });
 
-            app.MapDelete("/api/user/delete/{id:int}", async (int id, ApplicationContext db) =>
+            app.MapDelete("/api/users/{id:int}", async (int id, ApplicationContext db) =>
             {
                 // получаем пользователя по id
                 Person? person = await db.Person.FirstOrDefaultAsync(u => u.Id == id);
@@ -49,7 +45,7 @@ namespace WebAPI
                 return Results.Json(person);
             });
 
-            app.MapPost("/api/user/add", async (Person person, ApplicationContext db) =>
+            app.MapPost("/api/users", async (Person person, ApplicationContext db) =>
             {
                 // добавляем пользователя в массив
                 await db.Person.AddAsync(person);
@@ -57,7 +53,7 @@ namespace WebAPI
                 return person;
             });
 
-            app.MapPut("/api/user/update", async (Person personData, ApplicationContext db) =>
+            app.MapPut("/api/users", async (Person personData, ApplicationContext db) =>
             {
                 // получаем пользователя по id
                 var person = await db.Person.FirstOrDefaultAsync(u => u.Id == personData.Id);

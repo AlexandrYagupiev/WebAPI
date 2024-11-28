@@ -4,17 +4,19 @@
     <meta charset="utf-8" />
     <title>METANIT.COM</title>
     <style>
-        td {padding:5px;}
-        button {margin:5px;}
+        td {
+            padding: 5px;
+        }
+
+        button {
+            margin: 5px;
+        }
     </style>
 </head>
 <body>
     <h2>Список пользователей</h2>
     <div>
-        <p>
-            userId:<br />
-            <input id="userId" type="number" />
-        </p>
+        <input type="hidden" id="userId" />
         <p>
             Имя:<br />
             <input id="userName" />
@@ -33,12 +35,13 @@
         <tbody>
         </tbody>
     </table>
+
     <script>
     // Получение всех пользователей
         async function getUsers() {
             // отправляет запрос и получаем ответ
-            const response = await fetch("/api/user/seleclist", {
-             method: "GET",
+            const response = await fetch("/api/users", {
+                method: "GET",
                 headers: { "Accept": "application/json" }
             });
             // если запрос прошел нормально
@@ -52,13 +55,13 @@
         }
         // Получение одного пользователя
         async function getUser(id) {
-            const response = await fetch(`/api/user/select/${id}`, {
+            const response = await fetch(`/api/users/${id}`, {
                 method: "GET",
                 headers: { "Accept": "application/json" }
             });
             if (response.ok === true) {
                 const user = await response.json();
-               // document.getElementById("userId").value = user.id;
+                document.getElementById("userId").value = user.id;
                 document.getElementById("userName").value = user.name;
                 document.getElementById("userAge").value = user.age;
             }
@@ -69,13 +72,12 @@
             }
         }
         // Добавление пользователя
-        async function createUser(userId,userName, userAge) {
+        async function createUser(userName, userAge) {
 
-            const response = await fetch("/api/user/add", {
+            const response = await fetch("api/users", {
                 method: "POST",
                 headers: { "Accept": "application/json", "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    id: parseInt(userId,10),
                     name: userName,
                     age: parseInt(userAge, 10)
                 })
@@ -91,11 +93,11 @@
         }
         // Изменение пользователя
         async function editUser(userId, userName, userAge) {
-            const response = await fetch("/api/user/update", {
+            const response = await fetch("api/users", {
                 method: "PUT",
                 headers: { "Accept": "application/json", "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    id: parseInt(userId, 10),
+                    id: userId,
                     name: userName,
                     age: parseInt(userAge, 10)
                 })
@@ -111,7 +113,7 @@
         }
         // Удаление пользователя
         async function deleteUser(id) {
-            const response = await fetch(`/api/user/delete/${id}`, {
+            const response = await fetch(`/api/users/${id}`, {
                 method: "DELETE",
                 headers: { "Accept": "application/json" }
             });
@@ -127,8 +129,8 @@
 
         // сброс данных формы после отправки
         function reset() {
-            document.getElementById("userId").value = 
-            document.getElementById("userName").value = 
+            document.getElementById("userId").value =
+            document.getElementById("userName").value =
             document.getElementById("userAge").value = "";
         }
         // создание строки для таблицы
@@ -153,12 +155,12 @@
 
             const editLink = document.createElement("button");
             editLink.append("Изменить");
-            editLink.addEventListener("click", async () => await getUser(userId));
+            editLink.addEventListener("click", async() => await getUser(user.id));
             linksTd.append(editLink);
 
             const removeLink = document.createElement("button");
             removeLink.append("Удалить");
-            removeLink.addEventListener("click", async () => await deleteUser(userId));
+            removeLink.addEventListener("click", async () => await deleteUser(user.id));
 
             linksTd.append(removeLink);
             tr.appendChild(linksTd);
@@ -175,7 +177,7 @@
             const name = document.getElementById("userName").value;
             const age = document.getElementById("userAge").value;
             if (id === "")
-                await createUser(id,name, age);
+                await createUser(name, age);
             else
                 await editUser(id, name, age);
             reset();
