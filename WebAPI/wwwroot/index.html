@@ -11,7 +11,10 @@
 <body>
     <h2>Список пользователей</h2>
     <div>
-        <input type="hidden" id="userId" />
+        <p>
+            userId:<br />
+            <input id="userId" type="number" />
+        </p>
         <p>
             Имя:<br />
             <input id="userName" />
@@ -26,7 +29,7 @@
         </p>
     </div>
     <table>
-        <thead><tr><th>Имя</th><th>Возраст</th><th></th></tr></thead>
+        <thead><tr><th>id</th><th>Имя</th><th>Возраст</th><th></th></tr></thead>
         <tbody>
         </tbody>
     </table>
@@ -35,7 +38,7 @@
         async function getUsers() {
             // отправляет запрос и получаем ответ
             const response = await fetch("/api/user/seleclist", {
-                method: "GET",
+             method: "GET",
                 headers: { "Accept": "application/json" }
             });
             // если запрос прошел нормально
@@ -55,7 +58,7 @@
             });
             if (response.ok === true) {
                 const user = await response.json();
-                document.getElementById("userId").value = user.id;
+               // document.getElementById("userId").value = user.id;
                 document.getElementById("userName").value = user.name;
                 document.getElementById("userAge").value = user.age;
             }
@@ -66,12 +69,13 @@
             }
         }
         // Добавление пользователя
-        async function createUser(userName, userAge) {
+        async function createUser(userId,userName, userAge) {
 
             const response = await fetch("/api/user/add", {
                 method: "POST",
                 headers: { "Accept": "application/json", "Content-Type": "application/json" },
                 body: JSON.stringify({
+                    id: parseInt(userId,10),
                     name: userName,
                     age: parseInt(userAge, 10)
                 })
@@ -91,7 +95,7 @@
                 method: "PUT",
                 headers: { "Accept": "application/json", "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    id: userId,
+                    id: parseInt(userId, 10),
                     name: userName,
                     age: parseInt(userAge, 10)
                 })
@@ -123,8 +127,8 @@
 
         // сброс данных формы после отправки
         function reset() {
-            document.getElementById("userId").value = "";
-            document.getElementById("userName").value = "";
+            document.getElementById("userId").value = 
+            document.getElementById("userName").value = 
             document.getElementById("userAge").value = "";
         }
         // создание строки для таблицы
@@ -132,6 +136,10 @@
 
             const tr = document.createElement("tr");
             tr.setAttribute("data-rowid", user.id);
+
+            const idTd = document.createElement("td");
+            idTd.append(user.id);
+            tr.append(idTd);
 
             const nameTd = document.createElement("td");
             nameTd.append(user.name);
@@ -145,12 +153,12 @@
 
             const editLink = document.createElement("button");
             editLink.append("Изменить");
-            editLink.addEventListener("click", async() => await getUser(user.id));
+            editLink.addEventListener("click", async () => await getUser(userId));
             linksTd.append(editLink);
 
             const removeLink = document.createElement("button");
             removeLink.append("Удалить");
-            removeLink.addEventListener("click", async () => await deleteUser(user.id));
+            removeLink.addEventListener("click", async () => await deleteUser(userId));
 
             linksTd.append(removeLink);
             tr.appendChild(linksTd);
@@ -167,7 +175,7 @@
             const name = document.getElementById("userName").value;
             const age = document.getElementById("userAge").value;
             if (id === "")
-                await createUser(name, age);
+                await createUser(id,name, age);
             else
                 await editUser(id, name, age);
             reset();

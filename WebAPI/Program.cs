@@ -1,4 +1,6 @@
 using WebAPI.Models;
+using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace WebAPI
 {
@@ -6,63 +8,68 @@ namespace WebAPI
     {
         public static void Main(string[] args)
         {
-            List<Person> users = new List<Person>
-            {
-                  new() { Id = "1", Name = "Tom", Age = 37 },
-                  new() { Id = "2", Name = "Ember", Age = 23 },
-                  new() { Id = "3", Name = "Dima", Age = 33 }
-            };
-
             var builder = WebApplication.CreateBuilder(args);
+      //      string connection = "Server=(localdb)\\mssqllocaldb;Database=applicationdb;Trusted_Connection=True;";
+            // получаем строку подключени€ из файла конфигурации
+            string connection = builder.Configuration.GetConnectionString("DefaultConnection");
+
+            // добавл€ем контекст ApplicationContext в качестве сервиса в приложение
+            builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(connection));
+
             var app = builder.Build();
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
 
-            app.MapGet("/api/user/seleclist", () => users);
+            app.MapGet("/api/user/seleclist", () => async (ApplicationContext db) => await db.Person.ToListAsync());
 
-            app.MapGet("/api/user/select/{id}", (string id) =>
+            app.MapGet("/api/user/select/{id:int}", async (int id, ApplicationContext db) =>
             {
                 // получаем пользовател€ по id
-                Person? user = users.FirstOrDefault(u => u.Id == id);
+                Person? person = await db.Person.FirstOrDefaultAsync(u => u.Id == id);
+
                 // если не найден, отправл€ем статусный код и сообщение об ошибке
-                if (user == null) return Results.NotFound(new { message = "ѕользователь не найден" });
+                if (person == null) return Results.NotFound(new { message = "ѕользователь не найден" });
 
                 // если пользователь найден, отправл€ем его
-                return Results.Json(user);
+                return Results.Json(person);
             });
 
-            app.MapDelete("/api/user/delete/{id}", (string id) =>
+            app.MapDelete("/api/user/delete/{id:int}", async (int id, ApplicationContext db) =>
             {
                 // получаем пользовател€ по id
-                Person? user = users.FirstOrDefault(u => u.Id == id);
+                Person? person = await db.Person.FirstOrDefaultAsync(u => u.Id == id);
 
                 // если не найден, отправл€ем статусный код и сообщение об ошибке
-                if (user == null) return Results.NotFound(new { message = "ѕользователь не найден" });
+                if (person == null) return Results.NotFound(new { message = "ѕользователь не найден" });
 
                 // если пользователь найден, удал€ем его
-                users.Remove(user);
-                return Results.Json(user);
+                db.Person.Remove(person);
+                await db.SaveChangesAsync();
+                return Results.Json(person);
             });
 
-            app.MapPost("/api/user/add", (Person user) => {
-                // устанавливаем id дл€ нового пользовател€
-                user.Id = Guid.NewGuid().ToString();
-                // добавл€ем пользовател€ в список
-                users.Add(user);
-                return user;
+            app.MapPost("/api/user/add", async (Person person, ApplicationContext db) =>
+            {
+                // добавл€ем пользовател€ в массив
+                await db.Person.AddAsync(person);
+                await db.SaveChangesAsync();
+                return person;
             });
 
-            app.MapPut("/api/user/update", (Person userData) => {
-
+            app.MapPut("/api/user/update", async (Person personData, ApplicationContext db) =>
+            {
                 // получаем пользовател€ по id
-                var user = users.FirstOrDefault(u => u.Id == userData.Id);
+                var person = await db.Person.FirstOrDefaultAsync(u => u.Id == personData.Id);
+
                 // если не найден, отправл€ем статусный код и сообщение об ошибке
-                if (user == null) return Results.NotFound(new { message = "ѕользователь не найден" });
+                if (person == null) return Results.NotFound(new { message = "ѕользователь не найден" });
+
                 // если пользователь найден, измен€ем его данные и отправл€ем обратно клиенту
-                user.Age = userData.Age;
-                user.Name = userData.Name;
-                return Results.Json(user);
+                person.Age = personData.Age;
+                person.Name = personData.Name;
+                await db.SaveChangesAsync();
+                return Results.Json(person);
             });
 
             app.Run();
