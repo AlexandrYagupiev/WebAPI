@@ -51,6 +51,7 @@
                 const rows = document.querySelector("tbody");
                 // добавляем полученные элементы в таблицу
                 users.forEach(user => rows.append(row(user)));
+                SendMessageAsync(response.json());
             }
         }
         // Получение одного пользователя
