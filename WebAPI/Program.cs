@@ -22,10 +22,12 @@ namespace WebAPI
                 x.UsingRabbitMq();
             });
             builder.Services.AddControllers();
+            builder.Services.AddControllersWithViews();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();   
             builder.Services.AddScoped<IRabbitMqService, RabbitMqService>();
             var app = builder.Build();
+            app.MapControllers();
             app.UseDeveloperExceptionPage();
             if (app.Environment.IsDevelopment())
             {
