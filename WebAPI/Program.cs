@@ -1,12 +1,4 @@
-using WebAPI.Models;
-using Microsoft.EntityFrameworkCore;
-using System;
-using WebAPI.Repositories.Implementations;
-using WebAPI.Repositories.Interfases;
-using WebAPI.Servises.Implementations;
-using WebAPI.Servises.Interfases;
 using MassTransit;
-using Swashbuckle.AspNetCore.Swagger;
 using WebAPI.RabbitMQ;
 
 namespace WebAPI
